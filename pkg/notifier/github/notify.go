@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -21,6 +22,8 @@ func (g *NotifyService) Notify(ctx context.Context, param notifier.ParamExec) (i
 	parser := g.client.Config.Parser
 	template := g.client.Config.Template
 	var errMsgs []string
+
+	fmt.Println("notify i")
 
 	result := parser.Parse(param.CombinedOutput)
 	result.ExitCode = param.ExitCode
@@ -94,12 +97,14 @@ func (g *NotifyService) Notify(ctx context.Context, param notifier.ParamExec) (i
 	// embed HTML tag to hide old comments
 	body += embeddedComment
 
-	if err := g.client.Comment.Post(ctx, body, PostOptions{
-		Number:   cfg.PR.Number,
-		Revision: cfg.PR.Revision,
-	}); err != nil {
-		return result.ExitCode, err
-	}
+	fmt.Println(body)
+
+	// if err := g.client.Comment.Post(ctx, body, PostOptions{
+	// 	Number:   cfg.PR.Number,
+	// 	Revision: cfg.PR.Revision,
+	// }); err != nil {
+	// 	return result.ExitCode, err
+	// }
 	return result.ExitCode, nil
 }
 

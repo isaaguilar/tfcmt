@@ -34,11 +34,18 @@ type Command struct {
 
 // Run sends the notification with notifier
 func (ctrl *Controller) Run(ctx context.Context, command Command) error {
+	fmt.Println("start Run")
 	if err := platform.Complement(&ctrl.Config); err != nil {
 		return err
 	}
+	fmt.Println("done Complement")
+	// if err := ctrl.Config.Validate(); err != nil {
+	// 	return err
+	// }
+	// fmt.Println("done Validate")
 
-	if err := ctrl.Config.Validate(); err != nil {
+	err := ctrl.render(ctx)
+	if err != nil {
 		return err
 	}
 
@@ -46,6 +53,8 @@ func (ctrl *Controller) Run(ctx context.Context, command Command) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(ntf)
 
 	if ntf == nil {
 		return errors.New("no notifier specified at all")
@@ -169,6 +178,9 @@ func (ctrl *Controller) getNotifier(ctx context.Context) (notifier.Notifier, err
 		}
 		labels = a
 	}
+
+	// client := github.Client{}
+
 	client, err := github.NewClient(ctx, github.Config{
 		Token:   ctrl.Config.GitHubToken,
 		BaseURL: ctrl.Config.GHEBaseURL,
@@ -192,4 +204,19 @@ func (ctrl *Controller) getNotifier(ctx context.Context) (notifier.Notifier, err
 		return nil, err
 	}
 	return client.Notify, nil
+}
+
+func (ctrl *Controller) render(ctx context.Context) error {
+	labels := github.ResultLabels{}
+	if !ctrl.Config.Terraform.Plan.DisableLabel {
+		a, err := ctrl.renderGitHubLabels()
+		if err != nil {
+			return err
+		}
+		labels = a
+	}
+
+	fmt.Printf("%+v\n", labels)
+
+	return nil
 }
